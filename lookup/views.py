@@ -16,11 +16,17 @@ class InitiateLookup(APIView):
         return Response({'message' : 'Welcome, please pass a product that you wish to search for.'})
 
     def post(self, request):
+        min_price = request.data.get('min')
+        max_price = request.data.get('max')
         product = request.data.get('product')
+    
         if not product:
             return Response({'message' : 'Make sure to pass a product!'})
+        if min_price and max_price and min_price > max_price:
+            return Response({'message' : 'Please input a valid price range.'})
         manager = get_searcher()
-        products = manager.start_searching(product_input = product)
+        products = manager.start_searching(product_input = product, min_value = min_price,
+                                           max_value = max_price)
 
         return JsonResponse({'message' : 'Successfully fetched products!', **products})
 
