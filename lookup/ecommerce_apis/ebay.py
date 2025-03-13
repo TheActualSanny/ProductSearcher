@@ -2,14 +2,15 @@ import json
 import requests
 from .constants import EBAY_URL
 from .searcher_interface import SearcherInterface
-from .custom_logger import log_method
+from .custom_logger import log_class
+
+@log_class
 class EbaySearcher(SearcherInterface):
 
     def __init__(self, api_key: str, api_host: str):
         self._headers = {'x-rapidapi-key' : api_key,
                         'x-rapidapi-host' : api_host}
-    
-    @log_method
+
     def send_request(self, product: str) -> dict:
         response = requests.get(EBAY_URL.format(product = product), headers = self._headers, 
                                 params = {'keyword' : product})
@@ -18,8 +19,7 @@ class EbaySearcher(SearcherInterface):
             return response.json()
         except requests.exceptions.JSONDecodeError:
             return
-        
-    @log_method
+
     def parse_json(self, product: str, min_value: float, max_value: float) -> dict:
         potential_data = self.send_request(product)
         

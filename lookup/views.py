@@ -19,7 +19,6 @@ class InitiateLookup(APIView):
         min_price = request.data.get('min')
         max_price = request.data.get('max')
         product = request.data.get('product')
-    
         if not product:
             return Response({'message' : 'Make sure to pass a product!'})
         if min_price and max_price and min_price > max_price:
@@ -29,4 +28,3 @@ class InitiateLookup(APIView):
                                            max_value = max_price)
 
         return JsonResponse({'message' : 'Successfully fetched products!', **products})
-

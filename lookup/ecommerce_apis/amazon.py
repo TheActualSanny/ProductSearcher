@@ -4,8 +4,9 @@ import os
 from dotenv import load_dotenv
 from .constants import AMAZON_URL
 from .searcher_interface import SearcherInterface
-from .custom_logger import log_method
+from .custom_logger import log_class
 
+@log_class
 class AmazonSearcher(SearcherInterface):
     '''
         Class which is responsible for
@@ -14,7 +15,6 @@ class AmazonSearcher(SearcherInterface):
     def __init__(self, api_key: str, api_host: str):
         self._headers = {'x-rapidapi-key' : api_key, 'x-rapidapi-host' : api_host}
 
-    @log_method
     def send_request(self, product: str) -> dict:
         '''
             Sends a request to the amazon endpoint and 
@@ -28,7 +28,6 @@ class AmazonSearcher(SearcherInterface):
         except requests.exceptions.JSONDecodeError:
             return None
     
-    @log_method
     def parse_json(self, product: str, min_value: float, max_value: float) -> dict:
         '''
             Parses the products that were returned in send_request. 
