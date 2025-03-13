@@ -14,13 +14,13 @@ class SearchManager:
         for searcher in searchers:
             self.managers.append(searcher)
 
-    def start_searching(self, product_input: str) -> None:
+    def start_searching(self, product_input: str, min_value: int, max_value: int) -> None:
         '''
             The target product is passed to this method, which will then
             call each one of the manager's parse_json methods, respectively.
         '''
         finalized_data = dict()
-        threads = [ManagerThread(target = searcher.parse_json, args = (product_input,)) 
+        threads = [ManagerThread(target = searcher.parse_json, args = (product_input, min_value, max_value)) 
                    for searcher in self.managers]
 
         for thread in threads:

@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from .constants import AMAZON_URL
 from .searcher_interface import SearcherInterface
+from .custom_logger import log_method
 
 class AmazonSearcher(SearcherInterface):
     '''
@@ -13,6 +14,7 @@ class AmazonSearcher(SearcherInterface):
     def __init__(self, api_key: str, api_host: str):
         self._headers = {'x-rapidapi-key' : api_key, 'x-rapidapi-host' : api_host}
 
+    @log_method
     def send_request(self, product: str) -> dict:
         '''
             Sends a request to the amazon endpoint and 
@@ -26,7 +28,8 @@ class AmazonSearcher(SearcherInterface):
         except requests.exceptions.JSONDecodeError:
             return None
     
-    def parse_json(self, product: str) -> dict:
+    @log_method
+    def parse_json(self, product: str, min_value: float, max_value: float) -> dict:
         '''
             Parses the products that were returned in send_request. 
             Will implement caching using redis so that redundant API calls 
@@ -38,13 +41,14 @@ class AmazonSearcher(SearcherInterface):
             finalized = []
             for product_instance in products_data:
 
-                price = product_instance['product_price']
+                price = float(product_instance['product_price'][1:])
+                if not self.satisfies_range(price, max_val = max_value, min_val = min_value):
+                    continue
+                
                 product_name = product_instance['product_title']
                 url = product_instance['product_url']
 
                 finalized.append({'price' : price, 'name' : product_name,
                                   'site' : 'Amazon', 'product_url' : url})
-
-            print('Successfully fetched data!')
             return ('Amazon', finalized)
         
