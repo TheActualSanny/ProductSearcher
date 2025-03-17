@@ -22,7 +22,7 @@ class SearchManager:
         finalized_data = dict()
         threads = [ManagerThread(target = searcher.parse_json, args = (product_input, min_value, max_value)) 
                    for searcher in self.managers]
-
+        
         for thread in threads:
             thread.start()
         
@@ -31,3 +31,6 @@ class SearchManager:
             if searcher_result:
                 finalized_data[searcher_result[0]] = searcher_result[1]
         return finalized_data
+
+
+# Celery and redis, secondary.

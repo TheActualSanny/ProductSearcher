@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+import requests
 
 class SearcherInterface:
     '''
@@ -7,26 +7,23 @@ class SearcherInterface:
         methods are send_request and parse_json
     '''
 
-    @abstractmethod
-    def send_request(self, product: str):
-        pass
-    
-    @abstractmethod
-    def parse_json(self, product: str):
-        pass
+    def __init__(self, api_key: str, api_host: str, url: str,
+                 query_word: str = None):
+        self._query_word = query_word
+        self._headers = {'x-rapidapi-key' : api_key,
+                         'x-rapidapi-host' : api_host}
+        self._url = url
 
-    def satisfies_range(self, product_price: float, min_val: float, max_val: float) -> tuple:
-        '''
-            The user must to have multiple options to pass a range, which means
-            either only a minimum, only a maximum or a range or neither.
-            This method accepts the passed values and a product instance,
-            and it returns a boolean value.
-        '''
+    def send_request(self, product: str) -> dict:
+        params = None if not self._query_word else {self._query_word : product}
+        response = requests.get(self._url, headers = self._headers, 
+                                params = params)
+        try:
+            return response.json()
+        except requests.JSONDecodeError:
+            return 
+    
+    def parse_json(self, product: str):
+        data = self.send_request(product = product,
+                                 url = self._url)
         
-        conditions = (not min_val and max_val and product_price <= max_val,
-                    not max_val and min_val and product_price >= min_val,
-                    max_val and min_val and min_val <= product_price <= max_val,
-                    not max_val and not min_val,)
-        
-        if any(conditions):
-            return True
