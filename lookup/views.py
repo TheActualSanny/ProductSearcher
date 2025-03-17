@@ -23,7 +23,7 @@ class InitiateLookup(APIView):
             return Response({'message' : 'Make sure to pass a product!'})
         if min_price and max_price and min_price > max_price:
             return Response({'message' : 'Please input a valid price range.'})
-        manager = get_searcher()
+        manager = get_searcher(product = product)
         products = manager.start_searching(product_input = product, min_value = min_price,
                                            max_value = max_price)
 
