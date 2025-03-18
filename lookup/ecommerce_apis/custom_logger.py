@@ -1,5 +1,6 @@
 import logging
 import functools
+import requests 
 
 logger = logging.getLogger('__main__')
 format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -8,23 +9,28 @@ stream.setFormatter(format)
 logger.addHandler(stream)
 
 
-def log_method(method):
+def log_method(cls_name):
     '''
-        This will be a decorator that will be used for logging.
-        For now. A seperate decorator will be written for the searcher classes
-        which will wrap every method with log_method.
+        We have an outer function wrapping the decorator.
+        This is done in order to access the class name, so that
+        in the case of an exception, we know which searcher class raised it and which method.     
     '''
-    @functools.wraps(method)
-    def inner(*args, **kwargs):
-        try:
-            result = method(*args, **kwargs)
-            return result
-        except Exception as ex:
-            exc_str = f'{method.__doc__}:  Exception has been raised: {ex}'
-            logger.error(exc_str)
-    return inner
+    def outer(method):
+        @functools.wraps(method)
+        def inner(*args, **kwargs):
+            log_str = f'{cls_name} - {method.__name__}: ' + '{message}'
+            try:
+                result = method(*args, **kwargs)
+                logger.info(f'{log_str.format(message = result)}')
+                return result
+            except ValueError as ex:
+                logger.error(log_str.format(message = f'ValueError raised: {ex}'))
+            except requests.JSONDecodeError as ex:
+                logger.error(log_str.format(message = f'Failed to decode the JSON result: {ex}'))
+        return inner
+    return outer
 
-# MUSTADD: Multiple exception blocks
+# TODO: Multiple exception blocks
 # Pydantic
 def log_class(cls):
     class ModifiedClass:
@@ -39,7 +45,7 @@ def log_class(cls):
                 return x
             x = self.oInstance.__getattribute__(attr)
             if type(x) == type(self.__init__):
-                return log_method(x)
+                return log_method(self.oInstance.__class__)(x)
             else:
                 return x
     return ModifiedClass
