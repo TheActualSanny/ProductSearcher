@@ -20,8 +20,11 @@ class Product(BaseModel):
             try:
                 price = float(value[1:])
             except ValueError:
-                seperated = value.split()
-                price = float(''.join(seperated[0][1:]))
+                try:
+                    seperated = value.split()
+                    price = float(''.join(seperated[0][1:]))
+                except ValueError:
+                    price = float(value.split('$')[1])
             return price
         else:
             return value
