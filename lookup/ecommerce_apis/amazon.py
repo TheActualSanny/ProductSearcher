@@ -9,25 +9,21 @@ from .custom_logger import log_class
 
 @log_class
 class AmazonSearcher(SearcherInterface):
-    def parse_json(self, product: str, min_value: float, max_value: float) -> dict:
+
+    def parse_product(self, product: dict, min_value: float, max_value: float):
+            price = float(product['product_price'][1:])
+            if satisfies_range(price, max_val = max_value, min_val = min_value):
+                product_name = product['product_title']
+                url = product['product_url']
+                return Product(name = product_name, price = price,
+                               product_url = url, site = 'Amazon')
+
+    def parse_json(self, product: str, min_value: float, max_value: float) -> tuple:
         '''
             Parses the products that were returned in send_request. 
             Will implement caching using redis so that redundant API calls 
             will be reduced.
         '''
-        potential_data = self.send_request(product)
-        if potential_data:
-            
-            products_data = potential_data.get('data').get('products')  
-            finalized = []
-            for product_instance in products_data:
-                price = float(product_instance['product_price'][1:])
-                if not satisfies_range(price, max_val = max_value, min_val = min_value):
-                    continue
-                product_name = product_instance['product_title']
-                url = product_instance['product_url']
-                finalized_product = Product(name = product_name, price = price,
-                                            product_url = url, site = 'Amazon')
-                finalized.append(finalized_product.model_dump())
-            return ('Amazon', finalized)
+        finalized = super().parse_json(product, min_value = min_value, max_value = max_value)
+        return ('Amazon', finalized)
         

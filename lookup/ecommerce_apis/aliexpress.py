@@ -7,20 +7,17 @@ from .constants import ALIEXPRESS_URL, satisfies_range
 
 @log_class
 class AliExpressSearcher(SearcherInterface):
-    
-    def parse_json(self, product: str, min_value: float, max_value: float) -> None:
-        potential_data = self.send_request(product).get('data')
-        finalized_data = []
-        if not potential_data.get('note'):
-            found_products = potential_data.get('content')
-            for product_instance in found_products:
-                price_data = product_instance.get('prices').get('salePrice')
-                product_price = price_data.get('minPrice')
-                if not satisfies_range(product_price, max_val = max_value, min_val = min_value):
-                    continue
-                product_url = product_instance.get('store').get('storeUrl')
-                product_name = product_instance.get('title').get('displayTitle')
-                finalized_product = Product(name = product_name, product_url = product_url,
-                                            site = 'Aliexpress', price = product_price)
-                finalized_data.append(finalized_product.model_dump())
-        return ('AliExpress', finalized_data)
+
+    def parse_product(self, product: dict, min_value: float, max_value: float):
+        print(product)
+        price_data = product.get('prices').get('salePrice')
+        product_price = price_data.get('minPrice')
+        if satisfies_range(product_price, max_val = max_value, min_val = min_value):
+            product_url = product.get('store').get('storeUrl')
+            product_name = product.get('title').get('displayTitle')
+            return Product(name = product_name, product_url = product_url,
+                           site = 'Aliexpress', price = product_price)
+        
+    def parse_json(self, product: str, min_value: float, max_value: float) -> tuple:
+        finalized = super().parse_json(product, min_value = min_value, max_value = max_value)
+        return ('AliExpress', finalized)
